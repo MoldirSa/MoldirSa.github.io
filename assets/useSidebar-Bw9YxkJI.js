@@ -1,0 +1,1 @@
+import{aU as s,z as l,aV as o,s as u}from"./index-dTK88Dks.js";const a=u(!1);function t(){function e(){a.value=!a.value}return{isCollapsed:s(a),toggle:e}}function r(){let e=!1;l(()=>{e=a.value,a.value=!0}),o(()=>{a.value=e})}export{t as a,r as u};

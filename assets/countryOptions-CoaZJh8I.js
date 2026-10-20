@@ -1,0 +1,1 @@
+const l=[{value:"KZ",label:"Казахстан"},{value:"KG",label:"Кыргызстан"},{value:"MX",label:"Мексика"},{value:"US",label:"США — недоступно",disabled:!0},{value:"OTHER",label:"Другие страны"}],e=[{value:"DEMO",label:"Demo"},{value:"PRODUCTION",label:"Production"}];export{e as A,l as C};

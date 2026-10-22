@@ -1,0 +1,1 @@
+import{s as o,z as s,aV as c}from"./index-CpdpKvDx.js";function i(t){const a=o(typeof window<"u"?window.matchMedia(t).matches:!1);let e=null;function n(){a.value=!!e?.matches}return s(()=>{e=window.matchMedia(t),n(),e.addEventListener("change",n)}),c(()=>{e?.removeEventListener("change",n),e=null}),a}export{i as u};

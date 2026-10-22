@@ -1,0 +1,1 @@
+import{C as a,aW as s,aV as i}from"./index-DzwnUsF0.js";const t=a({subtitle:null});function r(){function n(u){t.subtitle=u}function e(){t.subtitle=null}return s()&&i(e),{meta:t,setSubtitle:n,clear:e}}export{r as u};

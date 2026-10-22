@@ -1,1 +1,0 @@
-import{z as r,A as u}from"./index-oTYr59z1.js";function c(o,t){function n(i){const e=o.value;e&&!e.contains(i.target)&&t()}r(()=>document.addEventListener("pointerdown",n)),u(()=>document.removeEventListener("pointerdown",n))}export{c as u};

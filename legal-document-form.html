@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Создать юридический документ</title>
+  <style>
+    :root {
+      --bg: #12141a;
+      --modal: #23262f;
+      --card: #1c1f27;
+      --input: #2a2e38;
+      --line: #3a4050;
+      --text: #f3f5f8;
+      --muted: #9aa3b2;
+      --primary: #6d62ee;
+      --primary-2: #7c72f4;
+      --file: #5c6578;
+      --ok: #7ddea8;
+      --bad: #ff8b8b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 "Segoe UI", sans-serif;
+    }
+    .modal {
+      width: min(760px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      background: var(--modal);
+      border: 1px solid #2e3340;
+      border-radius: 12px;
+      box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+    }
+    .head, .foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+    }
+    .head { border-bottom: 1px solid #2c3140; }
+    .foot { border-top: 1px solid #2c3140; justify-content: flex-end; }
+    h1 { margin: 0; font-size: 18px; font-weight: 650; }
+    .x {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--line); background: transparent; color: var(--text);
+      font-size: 18px; cursor: pointer;
+    }
+    .body { overflow: auto; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label.field, .block { display: flex; flex-direction: column; gap: 8px; }
+    .span2 { grid-column: 1 / -1; }
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%; min-height: 42px; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: 8px;
+      background: var(--input); color: var(--text); font: inherit;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #8b93a3; }
+    .card {
+      border: 1px solid var(--line); border-radius: 10px; padding: 14px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .card h2 { margin: 0; font-size: 14px; font-weight: 650; }
+    .hint { margin: 0; color: var(--muted); font-size: 12px; }
+    .file-row, .actions, .chips, .roles, .switch { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .file-btn, button.btn, .mini {
+      border: 0; border-radius: 8px; min-height: 36px; padding: 0 14px;
+      font: inherit; cursor: pointer;
+    }
+    .file-btn { background: var(--file); color: #fff; }
+    .btn.ghost { background: #2c313c; color: var(--text); }
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.primary:hover { background: var(--primary-2); }
+    .mini { background: transparent; color: var(--primary-2); padding: 0 8px; }
+    .check { display: flex; gap: 10px; align-items: flex-start; }
+    .check input { margin-top: 3px; accent-color: var(--primary); }
+    .check small { display: block; color: var(--muted); }
+    .seg { display: flex; gap: 8px; }
+    .seg button {
+      flex: 1; min-height: 40px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--input); color: var(--text); cursor: pointer; font: inherit;
+    }
+    .seg button.on { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+    .chip {
+      border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+      background: #2a3142; font-size: 12px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #313746; vertical-align: top; }
+    th { color: var(--muted); font-weight: 550; }
+    .err { color: var(--bad); font-size: 12px; margin: 0; }
+    .log { margin: 0; padding-left: 18px; color: var(--muted); }
+    .hidden { display: none; }
+    .closed { color: var(--muted); }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } .span2 { grid-column: auto; } }
+  </style>
+</head>
+<body>
+  <section class="modal" id="modal" aria-labelledby="title">
+    <header class="head">
+      <h1 id="title">Создать юридический документ</h1>
+      <button class="x" type="button" id="close" aria-label="Закрыть">×</button>
+    </header>
+    <form class="body" id="form">
+      <div class="grid">
+        <label class="field">Код *
+          <input id="code" name="code" type="text" required maxlength="64" placeholder="Код *" />
+        </label>
+        <label class="field">Название *
+          <input id="name" name="name" type="text" required maxlength="255" placeholder="Название *" />
+        </label>
+        <label class="field span2">Описание
+          <textarea id="description" name="description" placeholder="Описание"></textarea>
+        </label>
+        <label class="field">Начальная версия *
+          <input id="version" name="version" type="text" required placeholder="Начальная версия *" />
+        </label>
+        <label class="field">Дата публикации *
+          <input id="publishedAt" name="publishedAt" type="date" required />
+        </label>
+      </div>
+
+      <div class="card">
+        <label for="pdf">PDF-файл документа *</label>
+        <div class="file-row">
+          <button class="file-btn" type="button" id="pick">Выберите файл</button>
+          <input id="pdf" type="file" accept="application/pdf,.pdf" class="hidden" />
+          <span id="pdfName">Файл не выбран</span>
+        </div>
+        <p class="err hidden" id="pdfErr">Выберите PDF.</p>
+      </div>
+
+      <div class="card">
+        <h2>Поведение</h2>
+        <label class="check">
+          <input id="blocksRegistration" type="checkbox" />
+          <span>Блокирует регистрацию<small>Пока клиент не принял документ, регистрация не завершится.</small></span>
+        </label>
+        <label class="check">
+          <input id="active" type="checkbox" checked />
+          <span>Активен<small>Неактивный документ не показывается клиентам.</small></span>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>География действия</h2>
+        <div class="seg" role="radiogroup" aria-label="География действия">
+          <button type="button" id="allCountries" class="on">Все страны</button>
+          <button type="button" id="someCountries">Выбранные страны</button>
+        </div>
+        <div id="countryBox" class="hidden">
+          <input id="countrySearch" type="text" placeholder="Поиск страны" />
+          <div id="countryList" class="roles"></div>
+          <div id="countryChips" class="chips"></div>
+          <p class="err hidden" id="countryErr">Выберите хотя бы одну страну.</p>
+        </div>
+        <p class="hint" id="allHint">Документ применяется ко всем странам.</p>
+      </div>
+
+      <div class="card">
+        <h2>Ограничения в личном кабинете</h2>
+        <p class="hint">До принятия документа ограничить:</p>
+        <div id="actions"></div>
+        <p class="hint">Поля кабинета</p>
+        <div id="fields"></div>
+        <h2>Кто должен принять документ</h2>
+        <div id="audiences" class="roles"></div>
+      </div>
+
+      <div class="card">
+        <h2>Права на изменение документа</h2>
+        <p class="hint">Редактирование и публикация задаются отдельно.</p>
+        <div id="admins"></div>
+      </div>
+
+      <div class="card">
+        <h2>Версии</h2>
+        <div class="grid">
+          <label class="field">Номер новой версии
+            <input id="nextVersion" type="text" placeholder="2.0" />
+          </label>
+          <label class="field">Дата публикации
+            <input id="nextDate" type="date" />
+          </label>
+          <label class="field span2">Что изменилось
+            <input id="nextLog" type="text" placeholder="Кратко, что изменилось в PDF" />
+          </label>
+        </div>
+        <div class="file-row">
+          <button class="file-btn" type="button" id="pickNext">PDF новой версии</button>
+          <input id="nextPdf" type="file" accept="application/pdf,.pdf" class="hidden" />
+          <span id="nextPdfName">Файл не выбран</span>
+        </div>
+        <label class="check">
+          <input id="reaccept" type="checkbox" />
+          <span>Требует повторного принятия<small>Старые согласия не сбрасываются сами.</small></span>
+        </label>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="addVersion">Добавить версию</button>
+        </div>
+        <p class="err hidden" id="versionErr"></p>
+        <table>
+          <thead>
+            <tr><th>Версия</th><th>Дата</th><th>Статус</th><th>PDF</th><th>Изменения</th><th></th></tr>
+          </thead>
+          <tbody id="versions"></tbody>
+        </table>
+        <h2>История</h2>
+        <ul class="log" id="history"></ul>
+      </div>
+      <p class="err hidden" id="formErr"></p>
+    </form>
+    <footer class="foot">
+      <button class="btn ghost" type="button" id="cancel">Отмена</button>
+      <button class="btn primary" type="button" id="create">Создать</button>
+    </footer>
+  </section>
+  <p class="closed hidden" id="closed">Форма закрыта. <button class="mini" type="button" id="reopen">Открыть снова</button></p>
+
+  <script>
+    const COUNTRIES = [
+      ["KZ", "Казахстан"], ["KG", "Кыргызстан"], ["MY", "Малайзия"], ["MX", "Мексика"]
+    ]
+    const ACTIONS = [
+      ["registration.complete", "Завершение регистрации"],
+      ["api_keys.create", "Создание API-ключей"],
+      ["flows.create", "Создание и запуск Flow"],
+      ["billing.activate", "Активация подписки и оплата"],
+      ["users.manage", "Управление пользователями"]
+    ]
+    const FIELDS = [
+      ["company.name", "Название компании"],
+      ["billing.details", "Платёжные реквизиты"],
+      ["api.keys", "API-ключи"],
+      ["org.users", "Пользователи организации"]
+    ]
+    const AUDIENCES = [
+      ["owner", "Владелец организации"],
+      ["admin", "Администратор организации"],
+      ["member", "Обычный пользователь"]
+    ]
+    const ADMINS = [
+      ["super_admin", "Super Admin"],
+      ["legal_manager", "Legal Manager"],
+      ["product_manager", "Product Manager"],
+      ["support", "Support"]
+    ]
+    const MODES = [
+      ["none", "Не ограничено"], ["hidden", "Скрыто"], ["readonly", "Только чтение"], ["disabled", "Недоступно"]
+    ]
+
+    const state = {
+      allCountries: true,
+      countries: new Set(),
+      actions: new Set(),
+      fields: Object.fromEntries(FIELDS.map(([id]) => [id, "none"])),
+      audiences: new Set(["owner"]),
+      admins: Object.fromEntries(ADMINS.map(([id]) => [id, { edit: id === "super_admin" || id === "legal_manager", publish: id === "super_admin" }])),
+      versions: [],
+      history: [],
+      pdfName: "",
+      nextPdfName: ""
+    }
+
+    const $ = (id) => document.getElementById(id)
+
+    function log(text) {
+      state.history.unshift(text)
+      $("history").innerHTML = state.history.slice(0, 8).map((item) => `<li>${item}</li>`).join("")
+    }
+
+    function paintCountries() {
+      const query = $("countrySearch").value.trim().toLowerCase()
+      $("countryList").innerHTML = COUNTRIES.filter(([, name]) => name.toLowerCase().includes(query)).map(([code, name]) => `
+        <label class="check"><input type="checkbox" data-country="${code}" ${state.countries.has(code) ? "checked" : ""} /> <span>${name}</span></label>
+      `).join("")
+      $("countryChips").innerHTML = [...state.countries].map((code) => {
+        const name = COUNTRIES.find((item) => item[0] === code)?.[1] || code
+        return `<span class="chip">${name}</span>`
+      }).join("")
+    }
+
+    function paintVersions() {
+      const first = {
+        version: $("version").value.trim() || "—",
+        date: $("publishedAt").value || "—",
+        status: "draft",
+        file: state.pdfName || "Файл не выбран",
+        note: "Начальная версия",
+        locked: false,
+        reaccept: false,
+        initial: true
+      }
+      const rows = [first, ...state.versions]
+      $("versions").innerHTML = rows.map((row, index) => `
+        <tr>
+          <td>${row.version}${row.reaccept ? " · повторно" : ""}</td>
+          <td>${row.date}</td>
+          <td>${row.status === "published" ? "Опубликована" : "Черновик"}</td>
+          <td>${row.file}</td>
+          <td>${row.note}</td>
+          <td>${row.initial ? "" : row.status === "published" ? "Закрыта" : `<button class="mini" type="button" data-publish="${index - 1}">Опубликовать</button>`}</td>
+        </tr>
+      `).join("")
+    }
+
+    function paint() {
+      $("countryBox").classList.toggle("hidden", state.allCountries)
+      $("allHint").classList.toggle("hidden", !state.allCountries)
+      $("allCountries").classList.toggle("on", state.allCountries)
+      $("someCountries").classList.toggle("on", !state.allCountries)
+      paintCountries()
+      $("actions").innerHTML = ACTIONS.map(([id, name]) => `
+        <label class="check"><input type="checkbox" data-action="${id}" ${state.actions.has(id) ? "checked" : ""} /> <span>${name}</span></label>
+      `).join("")
+      $("fields").innerHTML = FIELDS.map(([id, name]) => `
+        <label class="field">${name}
+          <select data-field="${id}">${MODES.map(([value, label]) => `<option value="${value}" ${state.fields[id] === value ? "selected" : ""}>${label}</option>`).join("")}</select>
+        </label>
+      `).join("")
+      $("audiences").innerHTML = AUDIENCES.map(([id, name]) => `
+        <label class="check"><input type="checkbox" data-audience="${id}" ${state.audiences.has(id) ? "checked" : ""} /> <span>${name}</span></label>
+      `).join("")
+      $("admins").innerHTML = ADMINS.map(([id, name]) => `
+        <div class="check">
+          <span>${name}</span>
+          <label class="check"><input type="checkbox" data-admin="${id}" data-perm="edit" ${state.admins[id].edit ? "checked" : ""} /> <span>Редактировать</span></label>
+          <label class="check"><input type="checkbox" data-admin="${id}" data-perm="publish" ${state.admins[id].publish ? "checked" : ""} /> <span>Публиковать</span></label>
+        </div>
+      `).join("")
+      paintVersions()
+    }
+
+    $("allCountries").onclick = () => { state.allCountries = true; paint() }
+    $("someCountries").onclick = () => { state.allCountries = false; paint() }
+    $("countrySearch").oninput = paintCountries
+    $("pick").onclick = () => $("pdf").click()
+    $("pdf").onchange = () => {
+      const file = $("pdf").files[0]
+      state.pdfName = file ? file.name : ""
+      $("pdfName").textContent = state.pdfName || "Файл не выбран"
+      $("pdfErr").classList.add("hidden")
+      paintVersions()
+    }
+    $("pickNext").onclick = () => $("nextPdf").click()
+    $("nextPdf").onchange = () => {
+      const file = $("nextPdf").files[0]
+      state.nextPdfName = file ? file.name : ""
+      $("nextPdfName").textContent = state.nextPdfName || "Файл не выбран"
+    }
+    $("version").oninput = paintVersions
+    $("publishedAt").onchange = paintVersions
+
+    $("form").addEventListener("change", (event) => {
+      const target = event.target
+      if (target.dataset.country) {
+        target.checked ? state.countries.add(target.dataset.country) : state.countries.delete(target.dataset.country)
+        paintCountries()
+      }
+      if (target.dataset.action) {
+        target.checked ? state.actions.add(target.dataset.action) : state.actions.delete(target.dataset.action)
+        if (target.dataset.action === "registration.complete") $("blocksRegistration").checked = target.checked
+      }
+      if (target.dataset.field) state.fields[target.dataset.field] = target.value
+      if (target.dataset.audience) {
+        target.checked ? state.audiences.add(target.dataset.audience) : state.audiences.delete(target.dataset.audience)
+      }
+      if (target.dataset.admin) state.admins[target.dataset.admin][target.dataset.perm] = target.checked
+    })
+
+    $("blocksRegistration").onchange = () => {
+      $("blocksRegistration").checked ? state.actions.add("registration.complete") : state.actions.delete("registration.complete")
+      paint()
+    }
+
+    $("addVersion").onclick = () => {
+      const version = $("nextVersion").value.trim()
+      const date = $("nextDate").value
+      const note = $("nextLog").value.trim()
+      const err = $("versionErr")
+      if (!version || !date || !state.nextPdfName) {
+        err.textContent = "Для новой версии нужны номер, дата и PDF."
+        err.classList.remove("hidden")
+        return
+      }
+      const known = [$("version").value.trim(), ...state.versions.map((row) => row.version)]
+      if (known.includes(version)) {
+        err.textContent = "Такая версия уже есть."
+        err.classList.remove("hidden")
+        return
+      }
+      err.classList.add("hidden")
+      state.versions.push({ version, date, status: "draft", file: state.nextPdfName, note: note || "Без описания", reaccept: $("reaccept").checked, locked: false })
+      log(`Добавлен черновик версии ${version}`)
+      $("nextVersion").value = ""
+      $("nextLog").value = ""
+      $("reaccept").checked = false
+      $("nextPdf").value = ""
+      state.nextPdfName = ""
+      $("nextPdfName").textContent = "Файл не выбран"
+      paintVersions()
+    }
+
+    $("versions").onclick = (event) => {
+      const button = event.target.closest("[data-publish]")
+      if (!button) return
+      const row = state.versions[Number(button.dataset.publish)]
+      row.status = "published"
+      row.locked = true
+      log(`Опубликована версия ${row.version}${row.reaccept ? ", нужно повторное принятие" : ""}`)
+      paintVersions()
+    }
+
+    function showError(id, text) {
+      const node = $(id)
+      node.textContent = text
+      node.classList.remove("hidden")
+    }
+
+    $("create").onclick = () => {
+      $("formErr").classList.add("hidden")
+      $("pdfErr").classList.add("hidden")
+      $("countryErr").classList.add("hidden")
+      const missing = ["code", "name", "version", "publishedAt"].filter((id) => !$(id).value.trim())
+      if (missing.length) {
+        showError("formErr", "Заполните код, название, версию и дату публикации.")
+        $(missing[0]).focus()
+        return
+      }
+      if (!state.pdfName) {
+        showError("pdfErr", "Выберите PDF.")
+        return
+      }
+      if (!state.allCountries && state.countries.size === 0) {
+        showError("countryErr", "Выберите хотя бы одну страну.")
+        return
+      }
+      log(`Документ ${$("code").value.trim()} сохранён локально, без сервера`)
+      $("create").textContent = "Сохранено в макете"
+      setTimeout(() => { $("create").textContent = "Создать" }, 1600)
+    }
+
+    function closeForm() {
+      $("modal").classList.add("hidden")
+      $("closed").classList.remove("hidden")
+    }
+    $("close").onclick = closeForm
+    $("cancel").onclick = closeForm
+    $("reopen").onclick = () => {
+      $("modal").classList.remove("hidden")
+      $("closed").classList.add("hidden")
+    }
+
+    log("Макет открыт. Сервер не вызывается.")
+    paint()
+  </script>
+</body>
+</html>
